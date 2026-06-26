@@ -19,7 +19,7 @@
     "security-check": "node scripts/security-check.mjs"
   },
   "dependencies": {
-    "@cloudflare/vite-plugin": "^1.25.5",
+    "@cloudflare/vite-plugin": "^1.42.3",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/cloud-auth-js": "^1.1.2",
     "@lovable.dev/email-js": "^0.0.4",
@@ -71,7 +71,7 @@
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
-    "react-email": "^6.0.5",
+    "react-email": "^6.6.5",
     "react-hook-form": "^7.71.2",
     "react-resizable-panels": "^4.6.5",
     "recharts": "^2.15.4",
@@ -102,12 +102,22 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.1",
+    "vite": "^7.3.5",
     "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "engine.io": "6.6.9",
+    "socket.io-adapter": "2.5.8",
+    "undici": "7.28.0",
+    "ws": "8.21.0"
   },
   "pnpm": {
     "overrides": {
-      "entities": "4.5.0"
+      "engine.io": "6.6.9",
+      "entities": "4.5.0",
+      "socket.io-adapter": "2.5.8",
+      "undici": "7.28.0",
+      "ws": "8.21.0"
     }
   }
 }

@@ -12,7 +12,6 @@ import { scoreRow } from "@/lib/scores";
 import { backtestMaCross, computeHistoricalReturns } from "@/lib/backtest";
 import { SourcedCell } from "@/components/sourced-value";
 import { provenanceFor } from "@/lib/sourced";
-import { downloadTerminalPdf } from "@/lib/pdf-report";
 import { onAction } from "@/lib/action-bus";
 import { AiNarrative } from "@/components/ai-narrative";
 import { AskTerminal } from "@/components/ask-terminal";
@@ -28,6 +27,11 @@ type AnalysisResult = Awaited<ReturnType<typeof analyzeTicker>>;
 type Success = Extract<AnalysisResult, { target: any }>;
 type SearchResult = Awaited<ReturnType<typeof searchTickers>>;
 type Match = SearchResult["matches"][number];
+
+async function exportTerminalPdf(result: Success): Promise<void> {
+  const { downloadTerminalPdf } = await import("@/lib/pdf-report");
+  downloadTerminalPdf(result);
+}
 
 export function TerminalPage({ initialTicker: initialTickerProp }: { initialTicker?: string } = {}) {
   // When mounted from /terminal/$symbol, the prop wins. When mounted from /terminal,
@@ -103,7 +107,9 @@ export function TerminalPage({ initialTicker: initialTickerProp }: { initialTick
   // Press "e" to download the PDF report when a result is loaded
   useEffect(() => {
     if (!result) return;
-    return onAction("export", () => downloadTerminalPdf(result));
+    return onAction("export", () => {
+      void exportTerminalPdf(result);
+    });
   }, [result]);
 
   return (
@@ -299,7 +305,9 @@ function SnapshotBar({ r }: { r: Success }) {
               {inList ? "★ In Watchlist" : "☆ Add to Watchlist"}
             </button>
             <button
-              onClick={() => downloadTerminalPdf(r)}
+              onClick={() => {
+                void exportTerminalPdf(r);
+              }}
               title="Download PDF report (press E)"
               className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >

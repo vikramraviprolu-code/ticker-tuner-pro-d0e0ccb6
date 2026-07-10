@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Test artifacts
+test-results/
+playwright-report/
+
 node_modules
 dist
 dist-ssr

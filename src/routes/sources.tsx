@@ -5,9 +5,9 @@ export const Route = createFileRoute("/sources")({
   head: () => ({
     meta: [
       { title: "Data Sources — Global Equity Terminal v2" },
-      { name: "description", content: "Free and public data sources powering price, fundamentals, and corporate events in Global Equity Terminal v2." },
+      { name: "description", content: "Free, public, keyed, and zero-key data sources powering price, fundamentals, and corporate events in Global Equity Terminal v2." },
       { property: "og:title", content: "Data Sources — Global Equity Terminal v2" },
-      { property: "og:description", content: "Free and public data sources powering price, fundamentals, and corporate events in Global Equity Terminal v2." },
+      { property: "og:description", content: "Free, public, keyed, and zero-key data sources powering price, fundamentals, and corporate events in Global Equity Terminal v2." },
     ],
     links: [{ rel: "canonical", href: "https://rankaisolutions.tech/sources" }],
   }),
@@ -17,32 +17,70 @@ export const Route = createFileRoute("/sources")({
 const SOURCES = [
   {
     name: "Finimpulse API",
-    role: "Primary provider",
+    role: "Preferred keyed provider",
     metrics: ["Quote / price", "Trailing P/E", "Market cap (local + USD)", "Avg volume", "52W high / low", "MA50 / MA200", "Sector / industry", "Earnings date"],
-    freshness: "Delayed (15–20 min) on most exchanges",
-    reliability: "High",
-    notes: "Used as the canonical metadata + summary source. Falls back to mock when unavailable.",
+    freshness: "Real-time or delayed depending market / plan",
+    reliability: "High when key and quota are healthy",
+    notes: "Used first for market data where configured. If the key is missing, quota is exhausted, or an endpoint fails, the app should fall back to cache or lower-freshness public sources with visible provenance labels.",
     rights: "Data displayed under Finimpulse's terms of service. All market data remains the property of the originating exchanges and Finimpulse.",
     url: "https://api.finimpulse.com/",
   },
   {
-    name: "Perplexity (News)",
+    name: "Financial Modeling Prep / Alpha Vantage / Finnhub",
+    role: "Keyed fallback candidates",
+    metrics: ["Fundamentals", "Historical prices", "Ratios", "Profiles", "FX / indicators where available"],
+    freshness: "Delayed, historical, or fundamentals-only by endpoint",
+    reliability: "Medium — endpoint and free-tier coverage vary",
+    notes: "Used only where configured and within free-tier limits. Quota exhaustion should enter provider cooldown quickly rather than blocking interactive pages.",
+    rights: "Each upstream provider's terms, attribution, and exchange restrictions apply. Verify endpoint-specific terms before production reliance.",
+  },
+  {
+    name: "Yahoo-compatible public endpoints",
+    role: "Zero-key opportunistic fallback",
+    metrics: ["Delayed quotes", "Chart history", "Basic metadata"],
+    freshness: "Delayed / unofficial",
+    reliability: "Medium-low — undocumented schemas can change",
+    notes: "Helpful in zero-key mode, but must be treated as opportunistic and labeled with caveats rather than as an official live feed.",
+    rights: "Use only where permitted by applicable terms. Do not redistribute bulk market data.",
+  },
+  {
+    name: "Stooq CSV",
+    role: "Zero-key historical fallback",
+    metrics: ["EOD prices", "Historical price series", "Indices where available"],
+    freshness: "Historical/EOD",
+    reliability: "Medium — symbol coverage and mappings vary",
+    notes: "Good public fallback for charts and historical/EOD data. Historical/EOD values are never presented as real-time quotes.",
+    rights: "Public source terms and attribution requirements must be respected before production reliance.",
+    url: "https://stooq.com/",
+  },
+  {
+    name: "SEC EDGAR companyfacts / submissions",
+    role: "Zero-key US fundamentals fallback",
+    metrics: ["US company facts", "Filings metadata", "Fundamental line items"],
+    freshness: "Fundamentals-only, filing-lagged",
+    reliability: "High for US filers; not global",
+    notes: "Useful for US fundamentals when keyed providers are unavailable. Filing-lagged values should be labeled as historical fundamentals, not live financial estimates.",
+    rights: "Public SEC data. Respect fair-access guidance, user-agent requirements, and caching etiquette.",
+    url: "https://www.sec.gov/edgar/sec-api-documentation",
+  },
+  {
+    name: "Perplexity / cited web sources",
     role: "News & catalysts",
     metrics: ["AI-summarized news", "Citations to source articles"],
-    freshness: "Live web search",
+    freshness: "On-demand web retrieval",
     reliability: "Medium — AI-summarized; verify with cited sources",
-    notes: "Powers the News & Catalysts panel. We never store or redistribute headlines or article text — only the AI-generated paraphrase plus links back to original publishers.",
+    notes: "Powers the News & Catalysts panel where configured. We never store or redistribute headlines or article text — only paraphrases plus links back to original publishers.",
     rights: "Cited articles remain the property of their original publishers. Click citations to read at the source.",
     url: "https://www.perplexity.ai/",
   },
   {
-    name: "Lovable AI Gateway",
-    role: "Narrative generation",
-    metrics: ["AI thesis grounded in on-page metrics"],
-    freshness: "On-demand",
-    reliability: "Medium — AI-generated commentary",
-    notes: "Used by the AI Narrative panel. The model only sees metrics computed by the terminal — no external news or forecasts are fed in.",
-    rights: "AI output is generated from your in-app metrics. Not a verified statement of fact.",
+    name: "Supabase Postgres cache",
+    role: "Durable L2 cache",
+    metrics: ["Cached provider responses", "Source provenance", "Retrieved timestamps", "Stale-on-error data"],
+    freshness: "Fresh, stale-cache, or expired by field group TTL",
+    reliability: "High if cache bounds stay within free-tier limits",
+    notes: "Preferred durable cache because the app already uses Supabase. Cached values must keep source, retrievedAt, freshness class, and fallback reason metadata.",
+    rights: "Cache only what provider terms permit; do not expose bulk cache export APIs.",
   },
   {
     name: "Curated Universe",
@@ -50,18 +88,28 @@ const SOURCES = [
     metrics: ["Ticker", "Exchange", "Region", "Country", "Currency", "Sector", "Industry"],
     freshness: "Static — curated list",
     reliability: "High",
-    notes: "~150 hand-picked liquid global names across US, India, EU, JP, HK, KR, TW, AU, SG.",
+    notes: "Hand-picked liquid global names across US, India, EU, JP, HK, KR, TW, AU, SG. Used for symbol discovery and display metadata, not market prices.",
     rights: "Ticker symbols and company names are factual identifiers used for reference. Trademarks belong to their respective owners.",
   },
   {
-    name: "Mock demo provider",
-    role: "Fallback only",
-    metrics: ["All metrics deterministically derived from ticker hash"],
-    freshness: "Mock",
-    reliability: "Demo / not live",
-    notes: "Activated per-row when upstream sources fail. Always badged as 'mock' in the UI.",
+    name: "Demo / mock provider",
+    role: "Explicit demo mode only",
+    metrics: ["Synthetic demo metrics derived from ticker hash"],
+    freshness: "Demo/mock",
+    reliability: "Synthetic — not market data",
+    notes: "Demo/mock data is allowed only behind explicit demo mode or fixtures. It must be visibly labeled demo/mock and never silently substitute for production market data.",
     rights: "Synthetic data generated by the terminal — no third-party rights apply.",
   },
+] as const;
+
+const FRESHNESS_LABELS = [
+  "real-time",
+  "delayed",
+  "historical/EOD",
+  "stale-cache",
+  "mixed-source",
+  "unavailable",
+  "demo/mock",
 ] as const;
 
 function SourcesPage() {
@@ -71,9 +119,20 @@ function SourcesPage() {
       <main className="flex-1 max-w-[1400px] mx-auto px-4 py-6 w-full">
         <h1 className="text-xl font-semibold tracking-tight">Data Sources</h1>
         <p className="text-xs text-muted-foreground mt-1 max-w-3xl">
-          The terminal blends free / public sources with deterministic mock fallback for resilience. We never silently mix mock and real data — when mock is used,
-          rows are badged accordingly and confidence is reduced.
+          The terminal blends keyed free-tier providers, public zero-key mode fallbacks, and durable cache reads. Lower-freshness data is useful, but it is always labeled: historical/EOD data is never presented as real-time, stale cache is marked stale, and demo/mock data is reserved for explicit demo mode only.
         </p>
+
+        <div className="panel mt-4 p-4 text-xs text-muted-foreground leading-relaxed">
+          <div className="font-mono text-primary uppercase tracking-widest mb-2">Freshness semantics</div>
+          <div className="flex flex-wrap gap-1.5">
+            {FRESHNESS_LABELS.map((label) => (
+              <span key={label} className="text-[10px] font-mono border border-border rounded px-1.5 py-0.5 text-muted-foreground">{label}</span>
+            ))}
+          </div>
+          <p className="mt-3">
+            In zero-key mode the app should first use fresh cache, then stale-cache on provider failure, then public delayed or historical/EOD sources such as Stooq and SEC EDGAR where appropriate. Production pages should show unavailable fields instead of silently inventing values.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
           {SOURCES.map((s) => (
@@ -110,13 +169,13 @@ function SourcesPage() {
         </div>
 
         <div className="panel mt-6 p-5 text-xs text-muted-foreground leading-relaxed">
-          <div className="font-mono text-primary uppercase tracking-widest mb-2">Source priority (PRD)</div>
+          <div className="font-mono text-primary uppercase tracking-widest mb-2">Source priority</div>
           <ol className="list-decimal pl-5 space-y-1">
-            <li>Official exchange data</li>
-            <li>Company investor relations</li>
-            <li>Recognized financial data providers (Finimpulse)</li>
-            <li>Major finance websites</li>
-            <li>Public knowledge sources for basic metadata</li>
+            <li>Configured keyed providers with matching entitlement, quota, and freshness.</li>
+            <li>Fresh Supabase Postgres or in-memory cache with preserved provenance.</li>
+            <li>Stale cache on provider errors or quota exhaustion, clearly labeled stale-cache.</li>
+            <li>Zero-key public fallbacks for delayed, historical/EOD, fundamentals-only, or metadata-only fields.</li>
+            <li>Unavailable fields when no honest data source exists.</li>
           </ol>
         </div>
 

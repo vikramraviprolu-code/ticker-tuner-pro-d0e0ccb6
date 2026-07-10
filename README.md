@@ -75,6 +75,11 @@ Hong Kong, Korea, Taiwan, Singapore, and Australia**.
 - **AI**: Lovable AI Gateway (Gemini / GPT models) for narrative & catalysts
 - **Deploy**: Cloudflare Workers (edge SSR)
 
+## Runtime requirements
+
+- **Node.js 22.13.0 or newer is required** for local development, CI, and deploy builds. TanStack Start/Vite dependencies in this repo require modern Node 22+, and the current toolchain includes packages that require Node `^22.13.0`; running on Node 20 or early Node 22 emits `EBADENGINE` warnings.
+- Use `npm ci` to install from `package-lock.json`, then run `npm run test:unit`, `npm run build`, and `npm run bundle:check` before release or deploy.
+
 ## Routes
 
 - `/` — public marketing landing. Seven-section flow: Hero, Proof Strip
@@ -108,6 +113,7 @@ The top nav is grouped into 4 dropdown menus:
   score, and feature is defined and tooltipped throughout the UI.
 - **Changelog** — see [`CHANGELOG.md`](./CHANGELOG.md) or visit `/changelog`
   in the app.
+- **Free data source matrix** — see [`docs/data/free-source-matrix.md`](./docs/data/free-source-matrix.md) for provider freshness classes, keyed/zero-key fallback policy, quota-exhaustion behavior, and cache recommendations.
 - **Version** — single source of truth in [`src/lib/version.ts`](./src/lib/version.ts).
 
 ## Project conventions

@@ -13,10 +13,12 @@
     "format": "prettier --write .",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:e2e": "playwright test",
+    "test:e2e:sandbox": "E2E_REQUIRE_BASE_URL=1 playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "test:regression": "vitest run --config vitest.config.ts && playwright test",
     "pre-publish": "node scripts/pre-publish-check.mjs",
-    "security-check": "node scripts/security-check.mjs"
+    "security-check": "node scripts/security-check.mjs",
+    "bundle:check": "node scripts/bundle-size-check.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.42.3",
@@ -119,5 +121,8 @@
       "undici": "7.28.0",
       "ws": "8.21.0"
     }
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }

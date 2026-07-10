@@ -1,5 +1,8 @@
 name: Deploy to Lovable
 
+env:
+  NODE_VERSION: "22.13.0"
+
 on:
   push:
     branches: [main]
@@ -13,6 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -23,6 +31,9 @@ jobs:
 
       - name: Build project
         run: bun run build
+
+      - name: Bundle size check
+        run: bun run bundle:check
 
       - name: Trigger Lovable Deployment
         run: |

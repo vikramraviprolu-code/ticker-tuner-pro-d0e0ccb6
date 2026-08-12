@@ -1,0 +1,37 @@
+version: 2
+updates:
+  # Keeps the lockfile moving on its own so newly-disclosed advisories are
+  # fixed by a merge instead of a manual lockfile refresh.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # One PR for patch/minor drift; majors stay separate so they can be
+      # reviewed against the TanStack/Tailwind upgrade notes.
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+      production-dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions:
+        patterns: ["*"]

@@ -115,7 +115,11 @@ The top nav is grouped into 4 dropdown menus:
 - All documentation (this README, PRD, in-app glossary, tooltips, and
   CHANGELOG) is updated on every version bump. Features ship together with
   their docs — never separately.
-- **Pre-publish checklist** — run `bun run pre-publish` (or
+- **Package manager** — npm, with `package-lock.json` as the single lockfile of
+  record. CI installs with `npm ci`, Dependabot refreshes the lockfile weekly,
+  and the `Dependency advisories` job scans that same lockfile — so what is
+  scanned is what is installed. Don't commit a second lockfile.
+- **Pre-publish checklist** — run `npm run pre-publish` (or
   `node scripts/pre-publish-check.mjs`) before every publish. It verifies
   that `src/lib/version.ts`, the README header, the matching CHANGELOG
   entry, the newest PRD `.docx` cover/version markers, the glossary, and

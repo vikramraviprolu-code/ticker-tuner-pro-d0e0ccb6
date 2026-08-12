@@ -1,0 +1,9 @@
+# Time-boxed exceptions for the Dependency advisories job.
+#
+# Only add an entry when a CRITICAL advisory has no upgrade path yet, and always
+# give it an expiry so it comes back instead of silently living forever:
+#
+#   CVE-2026-12345 exp:2026-12-31
+#
+# HIGH advisories do not need entries here — they are tracked in an issue and
+# fixed by the weekly Dependabot PRs rather than blocking the pipeline.

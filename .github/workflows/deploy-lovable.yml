@@ -11,18 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-          bun-version: latest
+          node-version: "22"
+          cache: npm
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
 
       - name: Build project
-        run: bun run build
+        run: npm run build
 
       - name: Trigger Lovable Deployment
         run: |

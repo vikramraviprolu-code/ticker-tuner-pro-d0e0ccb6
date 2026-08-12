@@ -80,7 +80,7 @@ Your project now has a GitHub Action workflow at `.github/workflows/deploy-lovab
 
 **Build failures:**
 - Ensure all dependencies are installed correctly
-- Check that the build passes locally with `bun run build`
+- Check that the build passes locally with `npm run build`
 - Review build logs in GitHub Actions
 
 **Deployment not updating:**

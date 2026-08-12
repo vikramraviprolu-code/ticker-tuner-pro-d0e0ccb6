@@ -45,3 +45,12 @@ secrets.json
 
 # Local git worktrees
 .worktrees/
+
+# Security scan reports
+trivy.json
+trivy.sarif
+results.sarif
+
+# Test artefacts
+playwright-report/
+test-results/

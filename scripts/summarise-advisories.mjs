@@ -9,23 +9,34 @@
  *   high      — count of HIGH advisories with a published fix (tracked, not gating)
  *   body      — markdown body for the rolling tracking issue
  *
- * Always exits 0: deciding what blocks the build is the workflow's job.
+ * Exits 0 whenever the report was understood, however many advisories it holds —
+ * deciding what blocks the build is the workflow's job. An unreadable or
+ * unrecognised report exits non-zero instead, so a broken scan fails the job
+ * rather than looking indistinguishable from a clean one.
  */
 import { appendFileSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 const reportPath = process.argv[2] ?? "trivy.json";
 
+const fatal = (message) => {
+  console.error(`::error::${message}`);
+  process.exit(1);
+};
+
 let report;
 try {
   report = JSON.parse(readFileSync(reportPath, "utf8"));
 } catch (err) {
-  console.error(`Could not read ${reportPath}: ${err.message}`);
-  report = { Results: [] };
+  fatal(`Could not read the Trivy report at ${reportPath}: ${err.message}`);
+}
+
+if (!Array.isArray(report?.Results)) {
+  fatal(`${reportPath} has no Results array — the scan did not produce a usable report.`);
 }
 
 const findings = [];
-for (const result of report.Results ?? []) {
+for (const result of report.Results) {
   for (const v of result.Vulnerabilities ?? []) {
     findings.push({
       target: result.Target,

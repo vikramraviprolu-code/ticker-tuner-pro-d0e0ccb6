@@ -38,7 +38,7 @@ jobs:
       - name: Auth-middleware + secret scan (hard gate)
         run: node scripts/security-check.mjs
       - name: Gitleaks secret scan (SARIF)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
